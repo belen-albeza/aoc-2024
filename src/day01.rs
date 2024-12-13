@@ -41,7 +41,7 @@ fn part2(input: &[(u32, u32)]) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const INPUT: &'static str = r"3   4
+    const INPUT: &str = r"3   4
 4   3
 2   5
 1   3
