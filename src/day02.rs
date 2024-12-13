@@ -13,14 +13,6 @@ fn parse(input: &str) -> Vec<Report> {
         .collect()
 }
 
-#[aoc(day2, part1)]
-fn part1(input: &[Report]) -> u32 {
-    input
-        .iter()
-        .filter(|report| is_report_valid(*report))
-        .count() as u32
-}
-
 fn is_report_valid(report: &Report) -> bool {
     if report.len() < 2 {
         return true;
@@ -42,6 +34,41 @@ fn is_report_valid(report: &Report) -> bool {
     true
 }
 
+fn is_report_valid_with_dampening(report: &Report) -> bool {
+    let res = is_report_valid(report);
+
+    if res {
+        return true;
+    }
+
+    for x in 0..report.len() {
+        let mut dampened = report.clone();
+        dampened.remove(x);
+
+        if is_report_valid(&dampened) {
+            return true;
+        }
+    }
+
+    false
+}
+
+#[aoc(day2, part1)]
+fn part1(input: &[Report]) -> u32 {
+    input
+        .iter()
+        .filter(|report| is_report_valid(*report))
+        .count() as u32
+}
+
+#[aoc(day2, part2)]
+fn part2(input: &[Report]) -> u32 {
+    input
+        .iter()
+        .filter(|report| is_report_valid_with_dampening(*report))
+        .count() as u32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -56,5 +83,10 @@ mod tests {
     #[test]
     fn part1_example() {
         assert_eq!(part1(&parse(INPUT)), 2);
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(&parse(INPUT)), 4);
     }
 }
