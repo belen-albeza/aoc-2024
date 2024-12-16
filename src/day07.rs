@@ -4,12 +4,16 @@ struct Equation {
 }
 
 impl Equation {
-    fn solvable(&self) -> bool {
-        solve_partial(self.target, &self.numbers, None)
+    fn solvable1(&self) -> bool {
+        solve_partial_part1(self.target, &self.numbers, None)
+    }
+
+    fn solvable2(&self) -> bool {
+        solve_partial_part2(self.target, &self.numbers, None)
     }
 }
 
-fn solve_partial(target: u64, numbers: &[u64], acc: Option<u64>) -> bool {
+fn solve_partial_part1(target: u64, numbers: &[u64], acc: Option<u64>) -> bool {
     if acc.unwrap_or(0) > target {
         return false;
     }
@@ -18,10 +22,30 @@ fn solve_partial(target: u64, numbers: &[u64], acc: Option<u64>) -> bool {
         return acc.unwrap_or(0) == target;
     }
 
-    let sum = solve_partial(target, &numbers[1..], Some(acc.unwrap_or(0) + numbers[0]));
-    let mul = solve_partial(target, &numbers[1..], Some(acc.unwrap_or(1) * numbers[0]));
+    solve_partial_part1(target, &numbers[1..], Some(acc.unwrap_or(0) + numbers[0]))
+        || solve_partial_part1(target, &numbers[1..], Some(acc.unwrap_or(1) * numbers[0]))
+}
 
-    sum || mul
+fn concat(a: u64, b: u64) -> u64 {
+    format!("{}{}", a, b).parse().unwrap()
+}
+
+fn solve_partial_part2(target: u64, numbers: &[u64], acc: Option<u64>) -> bool {
+    if acc.unwrap_or(0) > target {
+        return false;
+    }
+
+    if numbers.len() == 0 {
+        return acc.unwrap_or(0) == target;
+    }
+
+    solve_partial_part2(target, &numbers[1..], Some(acc.unwrap_or(0) + numbers[0]))
+        || solve_partial_part2(target, &numbers[1..], Some(acc.unwrap_or(1) * numbers[0]))
+        || solve_partial_part2(
+            target,
+            &numbers[1..],
+            Some(concat(acc.unwrap_or(0), numbers[0])),
+        )
 }
 
 use aoc_runner_derive::{aoc, aoc_generator};
@@ -42,7 +66,15 @@ fn parse(input: &str) -> Vec<Equation> {
 fn part1(input: &[Equation]) -> u64 {
     input
         .into_iter()
-        .filter_map(|x| if x.solvable() { Some(x.target) } else { None })
+        .filter_map(|x| if x.solvable1() { Some(x.target) } else { None })
+        .sum()
+}
+
+#[aoc(day7, part2)]
+fn part2(input: &[Equation]) -> u64 {
+    input
+        .into_iter()
+        .filter_map(|x| if x.solvable2() { Some(x.target) } else { None })
         .sum()
 }
 
@@ -63,5 +95,10 @@ mod tests {
     #[test]
     fn part1_example() {
         assert_eq!(part1(&parse(INPUT)), 3749);
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(&parse(INPUT)), 11387);
     }
 }
