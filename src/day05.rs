@@ -1,4 +1,5 @@
 use aoc_runner_derive::aoc;
+use std::cmp::Ordering;
 
 type Rule = (u32, u32);
 type Update = Vec<u32>;
@@ -34,27 +35,30 @@ impl Ruleset {
         Self { rules }
     }
 
-    fn validate(&self, update: &Update) -> bool {
-        for (page_idx, &page) in update.iter().enumerate() {
-            for (other_idx, &other) in update.iter().enumerate() {
-                if page_idx == other_idx {
-                    continue;
-                }
+    fn valid_update(&self, update: &Update) -> bool {
+        let mut sorted = update.clone();
+        sorted.sort_by(self.sort_fn());
+        sorted == *update
+    }
 
-                if self
-                    .rules_for(page)
-                    .iter()
-                    .find(|(_, y)| *y == other)
-                    .is_some()
-                {
-                    if page_idx >= other_idx {
-                        return false;
-                    }
-                }
+    fn sort_update(&self, update: &Update) -> Option<Update> {
+        let mut res = update.clone();
+        res.sort_by(self.sort_fn());
+        Some(res)
+    }
+
+    fn sort_fn<'a>(&self) -> impl Fn(&u32, &u32) -> Ordering + use<'_> {
+        |a, b| {
+            let binding = self.rules_for(*a);
+            let rule = binding.iter().find(|(_, y)| y == b);
+            if a == b {
+                Ordering::Equal
+            } else if rule.is_some() {
+                Ordering::Less
+            } else {
+                Ordering::Greater
             }
         }
-
-        true
     }
 
     fn rules_for(&self, page: u32) -> Vec<Rule> {
@@ -74,13 +78,25 @@ pub fn part1(input: &str) -> u32 {
     updates
         .iter()
         .filter_map(|update| {
-            if ruleset.validate(update) {
-                let middle_idx = update.len() / 2;
-                Some(update[middle_idx])
+            if ruleset.valid_update(update) {
+                Some(update[update.len() / 2])
             } else {
                 None
             }
         })
+        .sum()
+}
+
+#[aoc(day5, part2)]
+pub fn part2(input: &str) -> u32 {
+    let (rules, updates) = parse_part1(input);
+    let ruleset = Ruleset::new(rules);
+
+    updates
+        .into_iter()
+        .filter(|update| !ruleset.valid_update(update))
+        .map(|update| ruleset.sort_update(&update).unwrap())
+        .map(|update| update[update.len() / 2])
         .sum()
 }
 
@@ -123,6 +139,11 @@ mod tests {
     }
 
     #[test]
+    fn part2_example() {
+        assert_eq!(part2(INPUT), 123);
+    }
+
+    #[test]
     fn rules_for() {
         let (rules, _) = parse_part1(INPUT);
         let ruleset = Ruleset::new(rules);
@@ -130,6 +151,17 @@ mod tests {
         assert_eq!(
             ruleset.rules_for(97),
             vec![(97, 13), (97, 61), (97, 47), (97, 29), (97, 53), (97, 75)]
+        );
+    }
+
+    #[test]
+    fn sort_update() {
+        let (rules, _) = parse_part1(INPUT);
+        let ruleset = Ruleset::new(rules);
+
+        assert_eq!(
+            ruleset.sort_update(&vec![75, 97, 47, 61, 53]),
+            Some(vec![97, 75, 47, 61, 53])
         );
     }
 }
