@@ -30,7 +30,7 @@ impl<T: Copy> Grid<T> {
         (self.cells.len() / self.width) as i32
     }
 
-    fn index_for(&self, (x, y): (i32, i32)) -> Option<usize> {
+    pub fn index_for(&self, (x, y): (i32, i32)) -> Option<usize> {
         if x < 0 || x >= self.width() || y < 0 || y >= self.height() {
             return None;
         }

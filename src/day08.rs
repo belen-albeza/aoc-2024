@@ -64,7 +64,7 @@ fn part1(input: &str) -> u32 {
     let antennas = grid.antennas();
     let mut antinodes: HashSet<(i32, i32)> = HashSet::new();
 
-    for (freq, positions) in antennas {
+    for (_, positions) in antennas {
         let pairs = positions.into_iter().combinations(2);
         for pair in pairs {
             let a = pair[0];
@@ -80,6 +80,60 @@ fn part1(input: &str) -> u32 {
     }
 
     antinodes.len() as u32
+}
+
+#[aoc(day8, part2)]
+fn part2(input: &str) -> u32 {
+    let grid = Grid::from(input);
+    let antennas = grid.antennas();
+    let mut antinodes: HashSet<(i32, i32)> = HashSet::new();
+
+    for (_, positions) in antennas {
+        let pairs = positions.into_iter().combinations(2);
+        for pair in pairs {
+            let a = pair[0];
+            let b = pair[1];
+            let (start_offset, end_offset) = ((a.0 - b.0, a.1 - b.1), (b.0 - a.0, b.1 - a.1));
+
+            antinodes.insert(a);
+
+            let start_slope = Slope::new(a, start_offset, &grid);
+            for antinode in start_slope {
+                antinodes.insert(antinode);
+            }
+            let end_slope = Slope::new(a, end_offset, &grid);
+            for antinode in end_slope {
+                antinodes.insert(antinode);
+            }
+        }
+    }
+
+    antinodes.len() as u32
+}
+
+struct Slope<'a, T: Copy> {
+    current: (i32, i32),
+    step: (i32, i32),
+    grid: &'a Grid<T>,
+}
+
+impl<'a, T: Copy> Slope<'a, T> {
+    fn new(start: (i32, i32), step: (i32, i32), grid: &'a Grid<T>) -> Self {
+        Self {
+            current: start,
+            step,
+            grid,
+        }
+    }
+}
+
+impl<'a, T: Copy> Iterator for Slope<'a, T> {
+    type Item = (i32, i32);
+
+    fn next(&mut self) -> Option<(i32, i32)> {
+        self.current = (self.current.0 + self.step.0, self.current.1 + self.step.1);
+        self.grid.get_xy(self.current).map(|_| self.current)
+    }
 }
 
 #[cfg(test)]
@@ -102,5 +156,10 @@ mod tests {
     #[test]
     fn part1_example() {
         assert_eq!(part1(INPUT), 14);
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(INPUT), 34);
     }
 }
