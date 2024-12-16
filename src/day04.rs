@@ -15,13 +15,14 @@ fn part1(input: &str) -> u32 {
         (1, -1),
     ];
 
+    let target = "xmas";
     let mut res = 0;
 
     for y in 0..soup.height() as i32 {
         for x in 0..soup.width() as i32 {
             let words = dirs.iter().filter_map(|&step| {
-                let word: String = soup.word_iter((x, y), step).collect();
-                if word == "xmas" {
+                let word: String = soup.word_iter((x, y), step, target.len()).collect();
+                if word == target {
                     Some(word)
                 } else {
                     None
@@ -29,6 +30,44 @@ fn part1(input: &str) -> u32 {
             });
 
             res += words.count() as u32
+        }
+    }
+
+    res
+}
+
+#[aoc(day4, part2)]
+fn part2(input: &str) -> u32 {
+    let target = "mas";
+    let offsets = [(-1, -1), (1, 1), (-1, 1), (1, -1)]
+        .into_iter()
+        .map(|(a, b)| {
+            let half = (target.len() as i32 - 1) / 2;
+            (a * half, b * half)
+        })
+        .collect::<Vec<(i32, i32)>>();
+
+    let soup = Soup::from(input);
+
+    let mut res = 0;
+
+    for y in 0..soup.height() as i32 {
+        for x in 0..soup.width() as i32 {
+            let words = offsets.iter().filter_map(|&offset| {
+                let step = (offset.0 * -1, offset.1 * -1);
+                let start = (x + offset.0, y + offset.1);
+                let word: String = soup.word_iter(start, step, target.len()).collect();
+
+                if word == target {
+                    Some(word)
+                } else {
+                    None
+                }
+            });
+
+            if words.count() >= 2 {
+                res += 1;
+            }
         }
     }
 
@@ -63,8 +102,9 @@ impl Soup {
         &self,
         start: (i32, i32),
         step: (i32, i32),
+        target_len: usize,
     ) -> impl Iterator<Item = char> + use<'_> {
-        SoupIterator::new(&self, start, step)
+        SoupIterator::new(&self, start, step, target_len)
     }
 }
 
@@ -90,12 +130,12 @@ struct SoupIterator<'a> {
 }
 
 impl<'a> SoupIterator<'a> {
-    fn new(soup: &'a Soup, start: (i32, i32), step: (i32, i32)) -> Self {
+    fn new(soup: &'a Soup, start: (i32, i32), step: (i32, i32), target_len: usize) -> Self {
         Self {
             soup,
             current: start,
             step,
-            target_len: "xmas".len(),
+            target_len,
             count: 0,
         }
     }
@@ -150,5 +190,10 @@ MXMXAXMASX";
     #[test]
     fn part1_example() {
         assert_eq!(part1(INPUT), 18);
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(INPUT), 9);
     }
 }
