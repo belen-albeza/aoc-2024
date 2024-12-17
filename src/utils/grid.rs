@@ -1,6 +1,6 @@
 #[derive(Debug, PartialEq, Clone)]
 pub struct Grid<T: Copy> {
-    cells: Vec<T>,
+    pub cells: Vec<T>,
     width: usize,
 }
 
@@ -38,14 +38,14 @@ impl<T: Copy> Grid<T> {
         Some((y * self.width() + x) as usize)
     }
 
-    // fn xy_for(&self, index: usize) -> Option<(i32, i32)> {
-    //     let y = index / self.width;
-    //     let x = index % self.width;
+    pub fn xy_for(&self, index: usize) -> Option<(i32, i32)> {
+        let y = index / self.width;
+        let x = index % self.width;
 
-    //     if index < self.cells.len() {
-    //         Some((x as i32, y as i32))
-    //     } else {
-    //         None
-    //     }
-    // }
+        if index < self.cells.len() {
+            Some((x as i32, y as i32))
+        } else {
+            None
+        }
+    }
 }
