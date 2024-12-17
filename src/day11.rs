@@ -1,4 +1,6 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use memoize::memoize;
+
 #[aoc_generator(day11)]
 fn parse(input: &str) -> Vec<u64> {
     input.split(" ").map(|x| x.parse().unwrap()).collect()
@@ -53,6 +55,29 @@ fn split_number(x: u64) -> (u64, u64) {
     let (a, b) = (&digits[..digits.len() / 2], &digits[digits.len() / 2..]);
 
     (a.parse().unwrap(), b.parse().unwrap())
+}
+
+#[aoc(day11, part2)]
+fn part2(input: &[u64]) -> u64 {
+    input.into_iter().map(|&x| memoized_blink(x, 75)).sum()
+}
+
+#[memoize]
+fn memoized_blink(stone: u64, count: usize) -> u64 {
+    // NOTE: we need to return the *amount* of stones, so it's a matter of
+    // counting how many times we split before count is zero.
+    if count == 0 {
+        return 1;
+    }
+
+    match stone {
+        0 => memoized_blink(1, count - 1),
+        x if digits(x).len() % 2 == 0 => {
+            let (a, b) = split_number(x);
+            memoized_blink(a, count - 1) + memoized_blink(b, count - 1)
+        }
+        _ => memoized_blink(stone * 2024, count - 1),
+    }
 }
 
 #[cfg(test)]
