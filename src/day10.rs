@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use aoc_runner_derive::aoc;
 
 use crate::utils::Grid;
@@ -48,24 +46,29 @@ impl Map for Grid<usize> {
 type Route = Vec<(i32, i32)>;
 pub struct Trailhead<'a> {
     position: (i32, i32),
-    routes: Vec<Route>,
     grid: &'a Grid<usize>,
 }
 
 impl<'a> Trailhead<'a> {
     pub fn new(position: (i32, i32), grid: &'a Grid<usize>) -> Self {
-        Self {
-            position,
-            routes: vec![],
-            grid,
-        }
+        Self { position, grid }
     }
 
-    pub fn score(&mut self) -> u32 {
+    pub fn score_part1(&mut self) -> u32 {
         self.grid
             .targets()
             .filter_map(|target| self.find_path(self.position, target, &mut Vec::new()))
             .count() as u32
+    }
+
+    pub fn score_part2(&mut self) -> u32 {
+        self.grid
+            .targets()
+            .map(|target| {
+                self.find_all_paths(self.position, target, &mut vec![vec![]])
+                    .len()
+            })
+            .sum::<usize>() as u32
     }
 
     fn find_path(
@@ -101,6 +104,44 @@ impl<'a> Trailhead<'a> {
         None
     }
 
+    fn find_all_paths(
+        &mut self,
+        start: (i32, i32),
+        target: (i32, i32),
+        visited: &mut Vec<Route>,
+    ) -> Vec<Route> {
+        for route in visited.iter_mut() {
+            route.push(start);
+        }
+
+        if start == target {
+            return visited.to_owned();
+        }
+
+        let height = self.grid.get_xy(start).unwrap();
+
+        let neighbors = self.neighbors_for(start).into_iter().filter_map(|p| {
+            let cell = self.grid.get_xy(p)?;
+            if cell == height + 1 {
+                Some(p)
+            } else {
+                None
+            }
+        });
+
+        let mut paths = vec![];
+        for n in neighbors {
+            let found = self.find_all_paths(n, target, &mut visited.clone());
+            paths.push(found);
+        }
+
+        if paths.len() > 0 {
+            paths.into_iter().flatten().collect()
+        } else {
+            vec![]
+        }
+    }
+
     fn neighbors_for(&self, xy: (i32, i32)) -> Vec<(i32, i32)> {
         vec![
             (xy.0, xy.1 - 1),
@@ -117,14 +158,19 @@ fn part1(input: &str) -> u32 {
 
     grid.start_positions()
         .map(|pos| Trailhead::new(pos, &grid))
-        .map(|mut x| x.score())
+        .map(|mut x| x.score_part1())
         .sum()
 }
 
-// #[aoc(day10, part2)]
-// fn part2(input: &str) -> String {
-//     todo!()
-// }
+#[aoc(day10, part2)]
+fn part2(input: &str) -> u32 {
+    let grid: Grid<usize> = Grid::from(input);
+
+    grid.start_positions()
+        .map(|pos| Trailhead::new(pos, &grid))
+        .map(|mut x| x.score_part2())
+        .sum()
+}
 
 #[cfg(test)]
 mod tests {
@@ -164,8 +210,9 @@ mod tests {
             ]
         )
     }
-    // #[test]
-    // fn part2_example() {
-    //     assert_eq!(part2(&parse("<EXAMPLE>")), "<RESULT>");
-    // }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(INPUT), 81);
+    }
 }
