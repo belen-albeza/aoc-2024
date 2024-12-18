@@ -48,4 +48,14 @@ impl<T: Copy> Grid<T> {
             None
         }
     }
+
+    pub fn neighbors4_xy(&self, (x, y): (i32, i32)) -> Vec<((i32, i32), T)> {
+        [(0, -1), (1, 0), (0, 1), (-1, 0)]
+            .into_iter()
+            .filter_map(|(a, b)| {
+                let pos = (x + a, y + b);
+                self.get_xy(pos).map(|cell| (pos, cell))
+            })
+            .collect()
+    }
 }
