@@ -54,7 +54,16 @@ impl VM {
         }
     }
 
+    pub fn set_register(&mut self, idx: usize, value: u32) {
+        self.registers[idx] = value;
+    }
+
+    pub fn rom(&self) -> Vec<u8> {
+        self.rom.to_owned()
+    }
+
     pub fn run(&mut self) {
+        // println!("{:?}", self);
         while let Some(raw_opcode) = self.read_byte() {
             match Opcode::from(raw_opcode) {
                 Opcode::Adv => self.exec_adv(),
@@ -66,6 +75,7 @@ impl VM {
                 Opcode::Bdv => self.exec_bdv(),
                 Opcode::Cdv => self.exec_cdv(),
             }
+            // println!("\n{:?}", self);
         }
     }
 

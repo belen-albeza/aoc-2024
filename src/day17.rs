@@ -36,22 +36,52 @@ fn part1(input: &str) -> String {
 }
 
 #[aoc(day17, part2)]
-fn part2(_: &str) -> String {
-    todo!()
+fn part2(input: &str) -> u32 {
+    let mut res = 0;
+    let mut rom: Option<Vec<u32>> = None;
+
+    loop {
+        let mut vm = VM::from(input);
+        if rom.is_none() {
+            rom = Some(vm.rom().into_iter().map(|x| x as u32).collect());
+        }
+
+        vm.set_register(0, res);
+        vm.run();
+
+        if Some(vm.output()) == rom {
+            break;
+        }
+
+        res += 1;
+    }
+
+    res as u32
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    const INPUT: &str = r"Register A: 729
+    const INPUT1: &str = r"Register A: 729
 Register B: 0
 Register C: 0
 
 Program: 0,1,5,4,3,0";
 
+    const INPUT2: &str = r"Register A: 2024
+Register B: 0
+Register C: 0
+
+Program: 0,3,5,4,3,0";
+
     #[test]
     fn part1_example() {
-        assert_eq!(part1(INPUT), "4,6,3,5,6,3,5,2,1,0");
+        assert_eq!(part1(INPUT1), "4,6,3,5,6,3,5,2,1,0");
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(INPUT2), 117440);
     }
 }
