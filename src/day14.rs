@@ -98,7 +98,7 @@ fn part1(input: &[Robot]) -> u64 {
 }
 
 #[aoc(day14, part2)]
-fn part2(input: &[Robot]) -> u64 {
+fn part2(_: &[Robot]) -> u64 {
     todo!()
 }
 

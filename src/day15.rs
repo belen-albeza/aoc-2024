@@ -1,5 +1,4 @@
 use aoc_runner_derive::aoc;
-use itertools::Itertools;
 
 use crate::utils::Grid;
 
