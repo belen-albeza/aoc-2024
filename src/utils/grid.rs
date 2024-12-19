@@ -22,6 +22,16 @@ impl<T: Copy> Grid<T> {
         self.index_for(position).map(|idx| self.cells[idx])
     }
 
+    pub fn set_xy(&mut self, position: (i32, i32), value: T) -> Result<(), String> {
+        let idx = self
+            .index_for(position)
+            .ok_or("Invalid position".to_string())?;
+
+        self.cells[idx] = value;
+
+        Ok(())
+    }
+
     pub fn width(&self) -> i32 {
         self.width as i32
     }
